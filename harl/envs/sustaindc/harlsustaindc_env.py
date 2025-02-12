@@ -95,7 +95,7 @@ class HARLSustainDCEnv:
         self.render_episode += 1
         self._seed += 1
         self.cur_step = 0
-        obs, _ = self.env.reset(seed=self._seed)
+        obs = self.env.reset(seed=self._seed)
         obs = self.unwrap(obs)
         
         s_obs = self._create_shared_observation(obs)
