@@ -15,14 +15,14 @@ from utils.base_agents import BaseLoadShiftingAgent, BaseHVACAgent, BaseBatteryA
 MODEL_PATH = 'trained_models'
 SAVE_EVAL = "results"
 ENV = 'sustaindc'
-LOCATION = "az"
-AGENT_TYPE = "haa2c"
-RUN = "seed-00001-2024-06-04-20-41-56"
+LOCATION = "ca"
+AGENT_TYPE = "happo"
+RUN = "seed-00001-2025-03-19-22-13-45"
 ACTIVE_AGENTS = ['agent_ls', 'agent_dc', 'agent_bat']
 NUM_EVAL_EPISODES = 1
 
 # load trained algo and env configs
-with open(os.path.join(MODEL_PATH, ENV, LOCATION, AGENT_TYPE, AGENT_TYPE+"3agents",RUN,'config.json'), encoding='utf-8') as file:
+with open(os.path.join(SAVE_EVAL, ENV, LOCATION, AGENT_TYPE, AGENT_TYPE, RUN,'config.json'), encoding='utf-8') as file:
         saved_config = json.load(file)
 
 # read the algo, env and main args
@@ -31,7 +31,7 @@ algo_args, env_args, main_args = saved_config['algo_args'], saved_config['env_ar
 # update the algo_args with the new values
 algo_args['train']['n_rollout_threads'] = 1
 algo_args['eval']['n_eval_rollout_threads'] = 1
-algo_args['train']['model_dir'] = os.path.join(MODEL_PATH, ENV, LOCATION, AGENT_TYPE, AGENT_TYPE+"3agents",RUN, 'models')
+algo_args['train']['model_dir'] = os.path.join(SAVE_EVAL, ENV, LOCATION, AGENT_TYPE, AGENT_TYPE, RUN, 'models')
 # specify the top level folder to save the results
 algo_args["logger"]["log_dir"] = SAVE_EVAL
 # adjust number of eval episodes
@@ -80,8 +80,11 @@ eval_masks = np.ones(
 while True:
     eval_actions_collector = []
     for agent_id in range(expt_runner.num_agents):
+        obs = eval_obs[:, agent_id]
+        if obs.ndim == 1:
+            obs = np.array([obs[0]])
         eval_actions, temp_rnn_state = expt_runner.actor[agent_id].act(
-            eval_obs[:, agent_id],
+            obs,
             eval_rnn_states[:, agent_id],
             eval_masks[:, agent_id],
             eval_available_actions[:, agent_id]
