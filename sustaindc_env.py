@@ -451,8 +451,10 @@ class SustainDC(gym.Env):
         self.ls_reward = self.dc_reward = self.bat_reward = 0
 
         # Reset the managers
-        random_init_day =  random.randint(max(0, self.ranges_day[0]), min(364, self.ranges_day[1])) # self.init_day 
-        random_init_hour = random.randint(0, 23)
+        # random_init_day =  random.randint(max(0, self.ranges_day[0]), min(364, self.ranges_day[1])) # self.init_day
+        # random_init_hour = random.randint(0, 23)
+        random_init_day = 0
+        random_init_hour = 0
         self.current_hour = random_init_hour
         
         t_i = self.t_m.reset(init_day=random_init_day, init_hour=random_init_hour)

@@ -77,6 +77,27 @@ eval_masks = np.ones(
                         dtype=np.float32,
                     )
 
+# Changes to run simulations
+initial_steps = [[[0], [1], [1]], [[2], [1], [0]], [[1], [0], [1]], [[0], [0], [0]], [[1], [1], [1]]]
+steps = 0
+
+action_combs = []
+no_lines = 0
+with open("combinations.txt", "r") as f:
+    for line in f:
+        line_elements = np.array(list(map(int, line.strip().split(','))))
+        line_elements = line_elements.reshape(5, 3, 1)
+        action_combs.append(line_elements)
+        no_lines += 1
+
+        if no_lines == 5:
+            break
+
+action_combs = np.array(action_combs)
+combs_action_steps = 0
+
+all_step = 0
+
 while True:
     eval_actions_collector = []
     for agent_id in range(expt_runner.num_agents):
@@ -93,89 +114,110 @@ while True:
             deterministic=True,
         )
         eval_rnn_states[:, agent_id] = _t2n(temp_rnn_state)
-        eval_actions_collector.append(_t2n(eval_actions))
+        # eval_actions_collector.append(_t2n(eval_actions))
 
-    eval_actions = np.array(eval_actions_collector).transpose(1, 0, 2)
+    if steps < len(initial_steps):
+        eval_actions_set = np.array([initial_steps[steps]])
+        steps += 1
+    else:
+        eval_actions_set = action_combs[combs_action_steps]
+        combs_action_steps += 1
 
-    (
-        eval_obs,
-        eval_share_obs,
-        eval_rewards,
-        eval_dones,
-        eval_infos,
-        eval_available_actions,
-    ) = expt_runner.eval_envs.step(eval_actions)
-    
-    # append the information from each environment into the variables previously created using
-    # a for loop (for i in range(n_agents), for j in range(n_environments) -> eval_infos[j][i]... extract information)
-    eval_data = (
-        eval_obs,
-        eval_share_obs,
-        eval_rewards,
-        eval_dones,
-        eval_infos,
-        eval_available_actions,
-    )
+    for ts in range(len(eval_actions_set)):
+        eval_actions = np.array([eval_actions_set[ts]])
 
-    if expt_runner.dump_info:
-        for i in range(expt_runner.algo_args["eval"]["n_eval_rollout_threads"]):
-            for j in range(expt_runner.num_agents):
-                # Example extraction and storing of metrics for agent 1
-                if j == 0:  # Assuming agent_1 corresponds to index 0
-                    metrics[f'agent_{j+1}'].append({
-                        key: eval_infos[i][j].get(key, None) for key in [
-                            'ls_original_workload', 'ls_shifted_workload', 'ls_action', 'ls_norm_load_left',
-                            'ls_unasigned_day_load_left', 'ls_penalty_flag', 'ls_tasks_in_queue',
-                            'ls_tasks_dropped', 'ls_current_hour'
-                        ]
-                    })
-                elif j == 1:  # Assuming agent_1 corresponds to index 0
-                    metrics[f'agent_{j+1}'].append({
-                        key: eval_infos[i][j].get(key, None) for key in [
-                            'dc_ITE_total_power_kW', 'dc_HVAC_total_power_kW', 'dc_total_power_kW', 'dc_power_lb_kW', 
-                            'dc_power_ub_kW', 'dc_crac_setpoint_delta', 'dc_crac_setpoint', 'dc_cpu_workload_fraction', 
-                            'dc_int_temperature', 'dc_CW_pump_power_kW', 'dc_CT_pump_power_kW', 'dc_water_usage', 'dc_exterior_ambient_temp',
-                            'outside_temp', 'day', 'hour'
-                        ]
-                    })
-                elif j == 2:
-                    metrics[f'agent_{j+1}'].append({
-                        key: eval_infos[i][j].get(key, None) for key in [
-                            'bat_action', 'bat_SOC', 'bat_CO2_footprint', 'bat_avg_CI', 'bat_total_energy_without_battery_KWh',
-                            'bat_total_energy_with_battery_KWh', 'bat_max_bat_cap',
-                            'bat_dcload_min', 'bat_dcload_max',
-                        ]
-                    })
-                else:
-                    print(f'There is an error while saving the evaluation metrics')
-
-    eval_dones_env = np.all(eval_dones, axis=1)
-
-    eval_rnn_states[
-        eval_dones_env == True
-    ] = np.zeros(  # if env is done, then reset rnn_state to all zero
         (
-            (eval_dones_env == True).sum(),
-            expt_runner.num_agents,
-            expt_runner.recurrent_n,
-            expt_runner.rnn_hidden_size,
-        ),
-        dtype=np.float32,
-    )
+            eval_obs,
+            eval_share_obs,
+            eval_rewards,
+            eval_dones,
+            eval_infos,
+            eval_available_actions,
+        ) = expt_runner.eval_envs.step(eval_actions)
 
-    eval_masks = np.ones(
-        (expt_runner.algo_args["eval"]["n_eval_rollout_threads"], expt_runner.num_agents, 1),
-        dtype=np.float32,
-    )
-    eval_masks[eval_dones_env == True] = np.zeros(
-        ((eval_dones_env == True).sum(), expt_runner.num_agents, 1), dtype=np.float32
-    )
+        # append the information from each environment into the variables previously created using
+        # a for loop (for i in range(n_agents), for j in range(n_environments) -> eval_infos[j][i]... extract information)
+        eval_data = (
+            eval_obs,
+            eval_share_obs,
+            eval_rewards,
+            eval_dones,
+            eval_infos,
+            eval_available_actions,
+        )
 
-    for eval_i in range(expt_runner.algo_args["eval"]["n_eval_rollout_threads"]):
-        if eval_dones_env[eval_i]:
-            eval_episode += 1
+        if expt_runner.dump_info:
+            for i in range(expt_runner.algo_args["eval"]["n_eval_rollout_threads"]):
+                for j in range(expt_runner.num_agents):
+                    # Example extraction and storing of metrics for agent 1
+                    if j == 0:  # Assuming agent_1 corresponds to index 0
+                        metrics[f'agent_{j+1}'].append({
+                            key: eval_infos[i][j].get(key, None) for key in [
+                                'ls_original_workload', 'ls_shifted_workload', 'ls_action', 'ls_norm_load_left',
+                                'ls_unasigned_day_load_left', 'ls_penalty_flag', 'ls_tasks_in_queue',
+                                'ls_tasks_dropped', 'ls_current_hour'
+                            ]
+                        })
+                        metrics[f'agent_{j+1}'][-1]['ls_action'] = eval_actions_set[ts][j][0]
+                    elif j == 1:  # Assuming agent_1 corresponds to index 0
+                        metrics[f'agent_{j+1}'].append({
+                            key: eval_infos[i][j].get(key, None) for key in [
+                                'dc_ITE_total_power_kW', 'dc_HVAC_total_power_kW', 'dc_total_power_kW', 'dc_power_lb_kW',
+                                'dc_power_ub_kW', 'dc_crac_setpoint_delta', 'dc_crac_setpoint', 'dc_cpu_workload_fraction',
+                                'dc_int_temperature', 'dc_CW_pump_power_kW', 'dc_CT_pump_power_kW', 'dc_water_usage', 'dc_exterior_ambient_temp',
+                                'outside_temp', 'day', 'hour'
+                            ]
+                        })
+                        metrics[f'agent_{j + 1}'][-1]['dc_action'] = eval_actions_set[ts][j][0]
+                    elif j == 2:
+                        metrics[f'agent_{j+1}'].append({
+                            key: eval_infos[i][j].get(key, None) for key in [
+                                'bat_action', 'bat_SOC', 'bat_CO2_footprint', 'bat_avg_CI', 'bat_total_energy_without_battery_KWh',
+                                'bat_total_energy_with_battery_KWh', 'bat_max_bat_cap',
+                                'bat_dcload_min', 'bat_dcload_max',
+                            ]
+                        })
+                        metrics[f'agent_{j + 1}'][-1]['bat_action'] = eval_actions_set[ts][j][0]
+                    else:
+                        print(f'There is an error while saving the evaluation metrics')
+
+        eval_dones_env = np.all(eval_dones, axis=1)
+
+        eval_rnn_states[
+            eval_dones_env == True
+        ] = np.zeros(  # if env is done, then reset rnn_state to all zero
+            (
+                (eval_dones_env == True).sum(),
+                expt_runner.num_agents,
+                expt_runner.recurrent_n,
+                expt_runner.rnn_hidden_size,
+            ),
+            dtype=np.float32,
+        )
+
+        eval_masks = np.ones(
+            (expt_runner.algo_args["eval"]["n_eval_rollout_threads"], expt_runner.num_agents, 1),
+            dtype=np.float32,
+        )
+        eval_masks[eval_dones_env == True] = np.zeros(
+            ((eval_dones_env == True).sum(), expt_runner.num_agents, 1), dtype=np.float32
+        )
+
+        for eval_i in range(expt_runner.algo_args["eval"]["n_eval_rollout_threads"]):
+            if eval_dones_env[eval_i]:
+                eval_episode += 1
+
 
     if eval_episode >= expt_runner.algo_args["eval"]["eval_episodes"]:
+        break
+
+    all_step += 1
+    if all_step == 6 and len(metrics[f'agent_{1}']) % 10 == 0:
+        eval_obs, eval_share_obs, eval_available_actions = expt_runner.eval_envs.reset()
+        steps = 0
+        all_step = 0
+
+    if combs_action_steps == len(action_combs):
         break
     
 
