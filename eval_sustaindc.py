@@ -88,10 +88,10 @@ with open("combinations.txt", "r") as f:
         line_elements = np.array(list(map(int, line.strip().split(','))))
         line_elements = line_elements.reshape(5, 3, 1)
         action_combs.append(line_elements)
-        no_lines += 1
+        # no_lines += 1
 
-        if no_lines == 5:
-            break
+        # if no_lines == 5:
+        #     break
 
 action_combs = np.array(action_combs)
 combs_action_steps = 0
@@ -100,22 +100,23 @@ all_step = 0
 
 while True:
     eval_actions_collector = []
-    for agent_id in range(expt_runner.num_agents):
-        obs = eval_obs[:, agent_id]
-        if obs.ndim == 1:
-            obs = np.array([obs[0]])
-        eval_actions, temp_rnn_state = expt_runner.actor[agent_id].act(
-            obs,
-            eval_rnn_states[:, agent_id],
-            eval_masks[:, agent_id],
-            eval_available_actions[:, agent_id]
-            if eval_available_actions[0] is not None
-            else None,
-            deterministic=True,
-        )
-        eval_rnn_states[:, agent_id] = _t2n(temp_rnn_state)
+    # for agent_id in range(expt_runner.num_agents):
+    #     obs = eval_obs[:, agent_id]
+    #     if obs.ndim == 1:
+    #         obs = np.array([obs[0]])
+    #     eval_actions, temp_rnn_state = expt_runner.actor[agent_id].act(
+    #         obs,
+    #         eval_rnn_states[:, agent_id],
+    #         eval_masks[:, agent_id],
+    #         eval_available_actions[:, agent_id]
+    #         if eval_available_actions[0] is not None
+    #         else None,
+    #         deterministic=True,
+    #     )
+    #     eval_rnn_states[:, agent_id] = _t2n(temp_rnn_state)
         # eval_actions_collector.append(_t2n(eval_actions))
 
+    eval_rnn_states = np.zeros(shape=(1, 3, 1, 64))
     if steps < len(initial_steps):
         eval_actions_set = np.array([initial_steps[steps]])
         steps += 1

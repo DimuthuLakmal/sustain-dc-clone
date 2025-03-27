@@ -729,16 +729,16 @@ class OnPolicyBaseRunner:
 
         # Sort the combined data by day and then by hour
         # Assuming the keys for day and hour are 'day' and 'hour' respectively
-        sorted_combined_data = sorted(combined_data, key=lambda x: (x['day'], x['hour']))
+        # sorted_combined_data = sorted(combined_data, key=lambda x: (x['day'], x['hour']))
 
         # Determine fieldnames from the keys of the first combined row
-        if sorted_combined_data:
-            fieldnames = sorted_combined_data[0].keys()
+        if combined_data:
+            fieldnames = combined_data[0].keys()
 
             with open(filename, 'w', newline='') as file:
                 writer = csv.DictWriter(file, fieldnames=fieldnames)
                 writer.writeheader()
-                writer.writerows(sorted_combined_data)
+                writer.writerows(combined_data)
         
         print(f"Metrics for all agents have been saved to {filename}")
     
