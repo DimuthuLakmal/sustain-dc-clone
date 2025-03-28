@@ -70,10 +70,10 @@ class OnPolicyBase:
                                  (if None, all actions available)
             deterministic: (bool) whether the action should be mode of distribution or should be sampled.
         """
-        actions, = self.actor(
+        actions, action_log_probs = self.actor(
             torch.tensor(obs).to(self.device),
         )
-        return actions
+        return actions, action_log_probs
 
     def evaluate_actions(
         self,

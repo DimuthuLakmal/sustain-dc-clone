@@ -244,6 +244,7 @@ class OnPolicyBaseRunner:
                 (
                     values,
                     actions,
+                    action_log_probs,
                     rnn_states_critic,
                 ) = self.collect(step)
                 # actions: (n_threads, n_agents, action_dim)
@@ -270,6 +271,7 @@ class OnPolicyBaseRunner:
                     available_actions,
                     values,
                     actions,
+                    action_log_probs,
                     rnn_states_critic,
                 )
 
@@ -335,7 +337,7 @@ class OnPolicyBaseRunner:
         action_log_prob_collector = []
         rnn_state_collector = []
         for agent_id in range(self.num_agents):
-            action = self.actor[agent_id].get_actions(
+            action, action_log_prob = self.actor[agent_id].get_actions(
                 self.actor_buffer[agent_id].obs[step],
                 self.actor_buffer[agent_id].rnn_states[step],
                 self.actor_buffer[agent_id].masks[step],
@@ -344,10 +346,12 @@ class OnPolicyBaseRunner:
                 else None,
             )
             action_collector.append(_t2n(action))
+            action_log_prob_collector.append(_t2n(action_log_prob))
 
         # (n_agents, n_threads, dim) -> (n_threads, n_agents, dim)
         # actions = np.array(action_collector).transpose(1, 0, 2)
         actions = np.expand_dims(np.array(action_collector), axis=0)
+        action_log_probs = np.array(action_log_prob_collector).transpose(1, 0, 2)
 
         # collect values, rnn_states_critic from 1 critic
         if self.state_type == "EP":
@@ -375,7 +379,7 @@ class OnPolicyBaseRunner:
                 )
             )
 
-        return values, actions, rnn_states_critic
+        return values, actions, action_log_probs, rnn_states_critic
 
     def insert(self, data):
         """Insert data into buffer."""
@@ -388,6 +392,7 @@ class OnPolicyBaseRunner:
             available_actions,  # (n_threads, ) of None or (n_threads, n_agents, action_number)
             values,  # EP: (n_threads, dim), FP: (n_threads, n_agents, dim)
             actions,  # (n_threads, n_agents, action_dim)
+            action_log_probs,
             rnn_states_critic,  # EP: (n_threads, dim), FP: (n_threads, n_agents, dim)
         ) = data
 
@@ -460,6 +465,7 @@ class OnPolicyBaseRunner:
             self.actor_buffer[agent_id].insert(
                 np.stack(obs[:, agent_id], axis=0),
                 actions[:, agent_id],
+                action_log_probs[:, agent_id],
                 masks[:, agent_id],
                 active_masks[:, agent_id],
                 available_actions[:, agent_id]

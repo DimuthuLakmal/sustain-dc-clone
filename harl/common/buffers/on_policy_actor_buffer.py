@@ -83,6 +83,7 @@ class OnPolicyActorBuffer:
         self,
         obs,
         actions,
+        action_log_probs,
         masks,
         active_masks=None,
         available_actions=None,
@@ -90,6 +91,7 @@ class OnPolicyActorBuffer:
         """Insert data into actor buffer."""
         self.obs[self.step + 1] = obs.copy()
         self.actions[self.step] = actions.copy()
+        self.action_log_probs[self.step] = action_log_probs.copy()
         self.masks[self.step + 1] = masks.copy()
         if active_masks is not None:
             self.active_masks[self.step + 1] = active_masks.copy()
