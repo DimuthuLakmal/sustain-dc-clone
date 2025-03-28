@@ -1,6 +1,9 @@
 """Base class for on-policy algorithms."""
 
 import torch
+
+from harl.models.diffusion.diffusion import Diffusion
+from harl.models.diffusion.model import MLP
 from harl.models.policy_models.stochastic_policy import StochasticPolicy
 from harl.utils.models_tools import update_linear_schedule
 
@@ -33,7 +36,10 @@ class OnPolicyBase:
         self.obs_space = obs_space
         self.act_space = act_space
         # create actor network
-        self.actor = StochasticPolicy(args, self.obs_space, self.act_space, self.device)
+        self.model = MLP(state_dim=obs_space.shape[0], action_dim=3, device=device)
+
+        self.actor = Diffusion(state_dim=obs_space.shape[0], action_dim=3, model=self.model, max_action=2,
+                               beta_schedule='vp', n_timesteps=100, ).to(device)
         # create actor optimizer
         self.actor_optimizer = torch.optim.Adam(
             self.actor.parameters(),
@@ -64,10 +70,10 @@ class OnPolicyBase:
                                  (if None, all actions available)
             deterministic: (bool) whether the action should be mode of distribution or should be sampled.
         """
-        actions, action_log_probs, rnn_states_actor = self.actor(
-            obs, rnn_states_actor, masks, available_actions, deterministic
+        actions, = self.actor(
+            torch.tensor(obs).to(self.device),
         )
-        return actions, action_log_probs, rnn_states_actor
+        return actions
 
     def evaluate_actions(
         self,

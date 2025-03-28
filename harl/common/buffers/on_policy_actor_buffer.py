@@ -82,18 +82,14 @@ class OnPolicyActorBuffer:
     def insert(
         self,
         obs,
-        rnn_states,
         actions,
-        action_log_probs,
         masks,
         active_masks=None,
         available_actions=None,
     ):
         """Insert data into actor buffer."""
         self.obs[self.step + 1] = obs.copy()
-        self.rnn_states[self.step + 1] = rnn_states.copy()
         self.actions[self.step] = actions.copy()
-        self.action_log_probs[self.step] = action_log_probs.copy()
         self.masks[self.step + 1] = masks.copy()
         if active_masks is not None:
             self.active_masks[self.step + 1] = active_masks.copy()
@@ -105,7 +101,6 @@ class OnPolicyActorBuffer:
     def after_update(self):
         """After an update, copy the data at the last step to the first position of the buffer."""
         self.obs[0] = self.obs[-1].copy()
-        self.rnn_states[0] = self.rnn_states[-1].copy()
         self.masks[0] = self.masks[-1].copy()
         self.active_masks[0] = self.active_masks[-1].copy()
         if self.available_actions is not None:
