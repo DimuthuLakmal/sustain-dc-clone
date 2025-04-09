@@ -64,7 +64,7 @@ class HAPPO(OnPolicyBase):
 
         # actor update
         imp_weights = getattr(torch, self.action_aggregation)(
-            torch.exp(action_log_probs.unsqueeze(dim=-1) - old_action_log_probs_batch),
+            torch.exp(action_log_probs - old_action_log_probs_batch),
             dim=-1,
             keepdim=True,
         )

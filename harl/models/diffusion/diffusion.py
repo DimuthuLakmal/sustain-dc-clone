@@ -181,7 +181,7 @@ class Diffusion(nn.Module):
         # Optional: entropy bonus
         entropy = dist.entropy()
 
-        return log_probs, entropy, dist
+        return log_probs.unsqueeze(dim=-1), entropy, dist
 
     # ------------------------------------------ training ------------------------------------------#
 
