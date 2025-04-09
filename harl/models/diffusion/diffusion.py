@@ -170,8 +170,10 @@ class Diffusion(nn.Module):
 
         action_logits = self.p_sample_loop(state, shape, *args, **kwargs)
         action_logits = self.linear_out(action_logits)
+        probs = F.softmax(action_logits, dim=-1)
+
         # Create categorical distribution
-        dist = torch.distributions.Categorical(logits=action_logits)
+        dist = torch.distributions.Categorical(probs=probs)
 
         # Log probabilities of the actions taken
         log_probs = dist.log_prob(actions)
