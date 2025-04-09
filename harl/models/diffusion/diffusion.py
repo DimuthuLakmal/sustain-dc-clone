@@ -157,7 +157,7 @@ class Diffusion(nn.Module):
         action = dist.sample()
         log_prob = dist.log_prob(action)
 
-        return action, log_prob, probs
+        return action, log_prob
 
 
     def evaluate_action(self, state, *args, **kwargs):
