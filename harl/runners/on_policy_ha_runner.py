@@ -63,24 +63,12 @@ class OnPolicyHARunner(OnPolicyBaseRunner):
             )
 
             # compute action log probs for the actor before update.
-            old_actions_logprob, _, _ = self.actor[agent_id].evaluate_actions(
-                self.actor_buffer[agent_id]
-                .obs[:-1]
-                .reshape(-1, *self.actor_buffer[agent_id].obs.shape[2:]),
-                self.actor_buffer[agent_id]
-                .rnn_states[0:1]
-                .reshape(-1, *self.actor_buffer[agent_id].rnn_states.shape[2:]),
-                self.actor_buffer[agent_id].actions.reshape(
-                    -1, *self.actor_buffer[agent_id].actions.shape[2:]
-                ),
-                self.actor_buffer[agent_id]
-                .masks[:-1]
-                .reshape(-1, *self.actor_buffer[agent_id].masks.shape[2:]),
-                available_actions,
-                self.actor_buffer[agent_id]
-                .active_masks[:-1]
-                .reshape(-1, *self.actor_buffer[agent_id].active_masks.shape[2:]),
-            )
+            with torch.no_grad():
+                old_actions_logprob, _, _ = self.actor[agent_id](
+                    self.actor_buffer[agent_id]
+                    .obs[:-1]
+                    .reshape(-1, *self.actor_buffer[agent_id].obs.shape[2:]),
+                )
 
             # update actor
             if self.state_type == "EP":
@@ -93,24 +81,13 @@ class OnPolicyHARunner(OnPolicyBaseRunner):
                 )
 
             # compute action log probs for updated agent
-            new_actions_logprob, _, _ = self.actor[agent_id].evaluate_actions(
-                self.actor_buffer[agent_id]
-                .obs[:-1]
-                .reshape(-1, *self.actor_buffer[agent_id].obs.shape[2:]),
-                self.actor_buffer[agent_id]
-                .rnn_states[0:1]
-                .reshape(-1, *self.actor_buffer[agent_id].rnn_states.shape[2:]),
-                self.actor_buffer[agent_id].actions.reshape(
-                    -1, *self.actor_buffer[agent_id].actions.shape[2:]
-                ),
-                self.actor_buffer[agent_id]
-                .masks[:-1]
-                .reshape(-1, *self.actor_buffer[agent_id].masks.shape[2:]),
-                available_actions,
-                self.actor_buffer[agent_id]
-                .active_masks[:-1]
-                .reshape(-1, *self.actor_buffer[agent_id].active_masks.shape[2:]),
-            )
+            with torch.no_grad():
+                new_actions_logprob, _, _ = self.actor[agent_id](
+                    self.actor_buffer[agent_id]
+                    .obs[:-1]
+                    .reshape(-1, *self.actor_buffer[agent_id].obs.shape[2:]),
+                )
+
 
             # update factor for next agent
             factor = factor * _t2n(

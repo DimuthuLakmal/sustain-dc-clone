@@ -80,7 +80,7 @@ class SustainDCLogger(BaseLogger):
     def per_step(self, data):
         """Capture and update metrics per step."""
         super().per_step(data)
-        obs, _, rewards, dones, infos, _, _, _, _ = data
+        obs, _, rewards, dones, infos, _, _, _, _, _ = data
         dones_env = np.all(dones, axis=1)
         
         for i in range(len(infos)):  # Assuming infos are structured with one dict per environment

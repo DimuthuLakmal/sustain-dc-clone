@@ -143,9 +143,35 @@ class Diffusion(nn.Module):
     def sample(self, state, *args, **kwargs):
         batch_size = state.shape[0]
         shape = (batch_size, self.action_dim)
-        action = self.p_sample_loop(state, shape, *args, **kwargs)
+        logits = self.p_sample_loop(state, shape, *args, **kwargs)
 
-        return self.softmax(action).max(dim=1)[1].unsqueeze(dim=1)
+        # out = self.softmax(action).max(dim=1)
+        # action = out[1].unsqueeze(dim=1)
+        # action_prob = out[0].unsqueeze(dim=1)
+
+        # Apply softmax to convert logits to probabilities
+        probs = F.softmax(logits, dim=-1)
+
+        # Sample from categorical distribution
+        dist = torch.distributions.Categorical(probs=probs)
+        action = dist.sample()
+        log_prob = dist.log_prob(action)
+
+        return action, log_prob, probs
+
+
+    def evaluate_action(self, state, *args, **kwargs):
+        action_logits = self.p_sample_loop(state, *args, **kwargs)
+        # Create categorical distribution
+        dist = torch.distributions.Categorical(logits=logits)
+
+        # Log probabilities of the actions taken
+        log_probs = dist.log_prob(actions)
+
+        # Optional: entropy bonus
+        entropy = dist.entropy()
+
+        return log_probs, entropy, dist
 
     # ------------------------------------------ training ------------------------------------------#
 
@@ -183,4 +209,5 @@ class Diffusion(nn.Module):
 
     def forward(self, state, *args, **kwargs):
         return self.sample(state, *args, **kwargs)
+
 

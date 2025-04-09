@@ -36,9 +36,9 @@ class OnPolicyBase:
         self.obs_space = obs_space
         self.act_space = act_space
         # create actor network
-        self.model = MLP(state_dim=obs_space.shape[0], action_dim=3, device=device)
+        self.model = MLP(state_dim=obs_space.shape[0], action_dim=64, device=device)
 
-        self.actor = Diffusion(state_dim=obs_space.shape[0], action_dim=3, model=self.model, max_action=2,
+        self.actor = Diffusion(state_dim=obs_space.shape[0], action_dim=64, model=self.model, max_action=2,
                                beta_schedule='vp', n_timesteps=100, ).to(device)
         # create actor optimizer
         self.actor_optimizer = torch.optim.Adam(
@@ -100,8 +100,8 @@ class OnPolicyBase:
             action_log_probs,
             dist_entropy,
             action_distribution,
-        ) = self.actor.evaluate_actions(
-            obs, rnn_states_actor, action, masks, available_actions, active_masks
+        ) = self.actor(
+            obs
         )
         return action_log_probs, dist_entropy, action_distribution
 

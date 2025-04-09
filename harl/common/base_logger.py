@@ -51,6 +51,7 @@ class BaseLogger:
             available_actions,
             values,
             actions,
+            action_log_probs,
             rnn_states_critic,
         ) = data
         dones_env = np.all(dones, axis=1)
