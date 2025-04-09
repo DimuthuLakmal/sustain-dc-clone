@@ -89,6 +89,9 @@ class OnPolicyHARunner(OnPolicyBaseRunner):
                     self.actor_buffer[agent_id]
                     .obs[:-1]
                     .reshape(-1, *self.actor_buffer[agent_id].obs.shape[2:]),
+                    self.actor_buffer[agent_id].actions.reshape(
+                        -1, *self.actor_buffer[agent_id].actions.shape[2:]
+                    ),
                 )
 
 

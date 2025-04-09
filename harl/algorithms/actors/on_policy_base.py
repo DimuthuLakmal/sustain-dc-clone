@@ -39,7 +39,7 @@ class OnPolicyBase:
         self.model = MLP(state_dim=obs_space.shape[0], action_dim=64, device=device)
 
         self.actor = Diffusion(state_dim=obs_space.shape[0], action_dim=64, model=self.model, max_action=2,
-                               beta_schedule='vp', n_timesteps=100, ).to(device)
+                               beta_schedule='vp', n_timesteps=50, ).to(device)
         # create actor optimizer
         self.actor_optimizer = torch.optim.Adam(
             self.actor.parameters(),
