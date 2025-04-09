@@ -78,9 +78,9 @@ class OnPolicyBase:
     def evaluate_actions(
         self,
         obs,
-        rnn_states_actor,
-        action,
-        masks,
+        rnn_states_actor=None,
+        action=None,
+        masks=None,
         available_actions=None,
         active_masks=None,
     ):
@@ -100,7 +100,7 @@ class OnPolicyBase:
             action_log_probs,
             dist_entropy,
             action_distribution,
-        ) = self.actor(
+        ) = self.actor.evaluate_actions(
             obs, action
         )
         return action_log_probs, dist_entropy, action_distribution

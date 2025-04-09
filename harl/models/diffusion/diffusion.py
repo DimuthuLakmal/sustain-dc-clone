@@ -69,6 +69,7 @@ class Diffusion(nn.Module):
         self.loss_fn = Losses[loss_type]()
 
         self.softmax = nn.Softmax(dim=1)
+        self.linear_out = nn.Linear(action_dim, 3)
 
     # ------------------------------------------ sampling ------------------------------------------#
 
@@ -117,6 +118,7 @@ class Diffusion(nn.Module):
     # @torch.no_grad()
     def p_sample_loop(self, state, shape, verbose=False, return_diffusion=False):
         device = self.betas.device
+        state = torch.tensor(state, device=device)
 
         batch_size = shape[0]
         x = torch.randn(shape, device=device)
@@ -144,6 +146,7 @@ class Diffusion(nn.Module):
         batch_size = state.shape[0]
         shape = (batch_size, self.action_dim)
         logits = self.p_sample_loop(state, shape, *args, **kwargs)
+        logits = self.linear_out(logits)
 
         # out = self.softmax(action).max(dim=1)
         # action = out[1].unsqueeze(dim=1)
@@ -160,8 +163,13 @@ class Diffusion(nn.Module):
         return action, log_prob
 
 
-    def evaluate_action(self, state, actions, *args, **kwargs):
-        action_logits = self.p_sample_loop(state, *args, **kwargs)
+    def evaluate_actions(self, state, actions, *args, **kwargs):
+        batch_size = state.shape[0]
+        shape = (batch_size, self.action_dim)
+        actions = torch.tensor(actions, device=self.betas.device)
+
+        action_logits = self.p_sample_loop(state, shape, *args, **kwargs)
+        action_logits = self.linear_out(action_logits)
         # Create categorical distribution
         dist = torch.distributions.Categorical(logits=action_logits)
 

@@ -64,11 +64,11 @@ class OnPolicyHARunner(OnPolicyBaseRunner):
 
             # compute action log probs for the actor before update.
             with torch.no_grad():
-                old_actions_logprob, _, _ = self.actor[agent_id](
+                old_actions_logprob, _, _ = self.actor[agent_id].evaluate_actions(
                     self.actor_buffer[agent_id]
                     .obs[:-1]
                     .reshape(-1, *self.actor_buffer[agent_id].obs.shape[2:]),
-                    self.actor_buffer[agent_id].actions.reshape(
+                    action=self.actor_buffer[agent_id].actions.reshape(
                         -1, *self.actor_buffer[agent_id].actions.shape[2:]
                     ),
                 )
@@ -85,11 +85,11 @@ class OnPolicyHARunner(OnPolicyBaseRunner):
 
             # compute action log probs for updated agent
             with torch.no_grad():
-                new_actions_logprob, _, _ = self.actor[agent_id](
+                new_actions_logprob, _, _ = self.actor[agent_id].evaluate_action(
                     self.actor_buffer[agent_id]
                     .obs[:-1]
                     .reshape(-1, *self.actor_buffer[agent_id].obs.shape[2:]),
-                    self.actor_buffer[agent_id].actions.reshape(
+                    action=self.actor_buffer[agent_id].actions.reshape(
                         -1, *self.actor_buffer[agent_id].actions.shape[2:]
                     ),
                 )
