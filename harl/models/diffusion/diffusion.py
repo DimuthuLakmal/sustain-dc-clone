@@ -176,7 +176,7 @@ class Diffusion(nn.Module):
         dist = torch.distributions.Categorical(probs=probs)
 
         # Log probabilities of the actions taken
-        log_probs = dist.log_prob(actions)
+        log_probs = dist.log_prob(actions.squeeze())
 
         # Optional: entropy bonus
         entropy = dist.entropy()
