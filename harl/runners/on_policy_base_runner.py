@@ -351,7 +351,7 @@ class OnPolicyBaseRunner:
         # (n_agents, n_threads, dim) -> (n_threads, n_agents, dim)
         # actions = np.array(action_collector).transpose(1, 0, 2)
         actions = np.expand_dims(np.array(action_collector), axis=0)
-        action_log_probs = np.array(action_log_prob_collector).transpose(1, 0, 2)
+        action_log_probs = np.expand_dims(np.array(action_log_prob_collector), axis=0)
 
         # collect values, rnn_states_critic from 1 critic
         if self.state_type == "EP":
