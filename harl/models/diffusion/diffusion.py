@@ -160,10 +160,10 @@ class Diffusion(nn.Module):
         return action, log_prob
 
 
-    def evaluate_action(self, state, *args, **kwargs):
+    def evaluate_action(self, state, actions, *args, **kwargs):
         action_logits = self.p_sample_loop(state, *args, **kwargs)
         # Create categorical distribution
-        dist = torch.distributions.Categorical(logits=logits)
+        dist = torch.distributions.Categorical(logits=action_logits)
 
         # Log probabilities of the actions taken
         log_probs = dist.log_prob(actions)
