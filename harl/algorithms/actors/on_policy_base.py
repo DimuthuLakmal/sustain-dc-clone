@@ -101,7 +101,7 @@ class OnPolicyBase:
             dist_entropy,
             action_distribution,
         ) = self.actor(
-            obs
+            obs, action
         )
         return action_log_probs, dist_entropy, action_distribution
 
