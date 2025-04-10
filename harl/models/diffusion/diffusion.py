@@ -69,7 +69,7 @@ class Diffusion(nn.Module):
         self.loss_fn = Losses[loss_type]()
 
         self.softmax = nn.Softmax(dim=1)
-        self.linear_out = nn.Linear(action_dim, 3)
+        self.linear_out = nn.Linear(latent_dim, 3)
 
     # ------------------------------------------ sampling ------------------------------------------#
 
