@@ -17,13 +17,13 @@ from harl.models.diffusion.utils.utils import Progress, Silent
 
 
 class Diffusion(nn.Module):
-    def __init__(self, state_dim, action_dim, model, max_action,
+    def __init__(self, state_dim, latent_dim, model, max_action,
                  beta_schedule='linear', n_timesteps=100,
                  loss_type='l2', clip_denoised=True, predict_epsilon=True):
         super(Diffusion, self).__init__()
 
         self.state_dim = state_dim
-        self.action_dim = action_dim
+        self.latent_dim = latent_dim
         self.max_action = max_action
         self.model = model
 
@@ -144,7 +144,7 @@ class Diffusion(nn.Module):
     # @torch.no_grad()
     def sample(self, state, *args, **kwargs):
         batch_size = state.shape[0]
-        shape = (batch_size, self.action_dim)
+        shape = (batch_size, self.latent_dim)
         logits = self.p_sample_loop(state, shape, *args, **kwargs)
         logits = self.linear_out(logits)
 
@@ -165,7 +165,7 @@ class Diffusion(nn.Module):
 
     def evaluate_actions(self, state, actions, *args, **kwargs):
         batch_size = state.shape[0]
-        shape = (batch_size, self.action_dim)
+        shape = (batch_size, self.latent_dim)
         actions = torch.tensor(actions, device=self.betas.device)
 
         action_logits = self.p_sample_loop(state, shape, *args, **kwargs)

@@ -85,7 +85,7 @@ class OnPolicyHARunner(OnPolicyBaseRunner):
 
             # compute action log probs for updated agent
             with torch.no_grad():
-                new_actions_logprob, _, _ = self.actor[agent_id].evaluate_action(
+                new_actions_logprob, _, _ = self.actor[agent_id].evaluate_actions(
                     self.actor_buffer[agent_id]
                     .obs[:-1]
                     .reshape(-1, *self.actor_buffer[agent_id].obs.shape[2:]),

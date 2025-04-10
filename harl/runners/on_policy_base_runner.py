@@ -566,10 +566,11 @@ class OnPolicyBaseRunner:
                     else None,
                     deterministic=True,
                 )
-                eval_rnn_states[:, agent_id] = _t2n(temp_rnn_state)
+                eval_rnn_states[:, agent_id] = temp_rnn_state
                 eval_actions_collector.append(_t2n(eval_actions))
 
-            eval_actions = np.array(eval_actions_collector).transpose(1, 0, 2)
+            eval_actions = np.expand_dims(np.array(eval_actions_collector), axis=0)
+            # eval_actions = np.array(eval_actions_collector).transpose(1, 0, 2)
 
             (
                 eval_obs,
@@ -775,9 +776,11 @@ class OnPolicyBaseRunner:
                         else None,
                         deterministic=True,
                     )
-                    eval_rnn_states[:, agent_id] = _t2n(temp_rnn_state)
+                    eval_rnn_states[:, agent_id] = temp_rnn_state
                     eval_actions_collector.append(_t2n(eval_actions))
-                eval_actions = np.array(eval_actions_collector).transpose(1, 0, 2)
+
+                eval_actions = np.expand_dims(np.array(eval_actions_collector), axis=0)
+                # eval_actions = np.array(eval_actions_collector).transpose(1, 0, 2)
                 (
                     eval_obs,
                     _,
