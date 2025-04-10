@@ -295,7 +295,7 @@ class OnPolicyBaseRunner:
                 )
 
             # eval
-            if episode % self.algo_args["train"]["eval_interval"] == 0:
+            if episode % self.algo_args["train"]["eval_interval"] == 0 and episode != 10:
                 if self.algo_args["eval"]["use_eval"]:
                     self.prep_rollout()
                     self.update_chkpoints = self.eval()
