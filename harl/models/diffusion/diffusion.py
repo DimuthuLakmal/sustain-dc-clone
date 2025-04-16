@@ -14,6 +14,7 @@ from harl.models.diffusion.helpers import (cosine_beta_schedule,
                             extract,
                             Losses)
 from harl.models.diffusion.utils.utils import Progress, Silent
+from harl.utils.diffusion_helper import GaussianNoise
 
 
 class Diffusion(nn.Module):
@@ -70,6 +71,7 @@ class Diffusion(nn.Module):
 
         self.softmax = nn.Softmax(dim=1)
         self.linear_out = nn.Linear(latent_dim, 3)
+        self.noise_generator = GaussianNoise(sigma=0.1)
 
     # ------------------------------------------ sampling ------------------------------------------#
 
@@ -146,6 +148,10 @@ class Diffusion(nn.Module):
         batch_size = state.shape[0]
         shape = (batch_size, self.latent_dim)
         logits = self.p_sample_loop(state, shape, *args, **kwargs)
+        if np.random.rand() < 0.1:
+            noise = torch.from_numpy(self.noise_generator.generate(logits.shape)).to(logits.device)
+            logits = logits + noise
+            logits = torch.clamp(logits, -1*self.max_action, self.max_action)
         logits = self.linear_out(logits)
 
         # out = self.softmax(action).max(dim=1)
